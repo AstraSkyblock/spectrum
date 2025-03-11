@@ -1,4 +1,4 @@
-module github.com/cooldogedev/spectrum
+module github.com/AstraSkyblock/spectrum
 
 go 1.23.3
 

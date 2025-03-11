@@ -4,10 +4,9 @@ import (
 	"image/color"
 	"log/slog"
 
-	"github.com/cooldogedev/spectrum"
-	"github.com/cooldogedev/spectrum/server"
-	"github.com/cooldogedev/spectrum/session/animation"
-	"github.com/cooldogedev/spectrum/util"
+	"github.com/AstraSkyblock/spectrum/server"
+	"github.com/AstraSkyblock/spectrum/session/animation"
+	"github.com/AstraSkyblock/spectrum/util"
 	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 )

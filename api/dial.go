@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/cooldogedev/spectrum/api/packet"
+	"github.com/AstraSkyblock/spectrum/api/packet"
 )
 
 // Dial establishes a TCP connection to the specified API service address using the provided token.

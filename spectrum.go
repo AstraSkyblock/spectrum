@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/cooldogedev/spectrum/extra"
+	"github.com/AstraSkyblock/spectrum/extra"
 	"log/slog"
 
-	"github.com/cooldogedev/spectrum/server"
-	"github.com/cooldogedev/spectrum/session"
-	tr "github.com/cooldogedev/spectrum/transport"
-	"github.com/cooldogedev/spectrum/util"
+	"github.com/AstraSkyblock/spectrum/server"
+	"github.com/AstraSkyblock/spectrum/session"
+	tr "github.com/AstraSkyblock/spectrum/transport"
+	"github.com/AstraSkyblock/spectrum/util"
 	"github.com/sandertv/gophertunnel/minecraft"
 )
 

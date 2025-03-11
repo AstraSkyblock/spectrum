@@ -3,9 +3,8 @@ package main
 import (
 	"log/slog"
 
-	"github.com/cooldogedev/spectrum"
-	"github.com/cooldogedev/spectrum/server"
-	"github.com/cooldogedev/spectrum/util"
+	"github.com/AstraSkyblock/spectrum/server"
+	"github.com/AstraSkyblock/spectrum/util"
 	"github.com/sandertv/gophertunnel/minecraft"
 )
 
