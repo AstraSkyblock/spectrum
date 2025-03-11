@@ -2,9 +2,10 @@ package extra
 
 import (
 	"context"
-	"github.com/astraskyblock/spectral"
 	"log"
 	"sync"
+
+	"github.com/cooldogedev/spectral"
 )
 
 // Client represents a persistent connection to the server.
