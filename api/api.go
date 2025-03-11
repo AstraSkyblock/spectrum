@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"net"
 
-	"github.com/cooldogedev/spectrum/api/packet"
-	"github.com/cooldogedev/spectrum/session"
+	"github.com/astraskyblock/spectrum/api/packet"
+	"github.com/astraskyblock/spectrum/session"
 )
 
 // handler defines a function for processing incoming packets.

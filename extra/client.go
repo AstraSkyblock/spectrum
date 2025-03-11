@@ -2,7 +2,7 @@ package extra
 
 import (
 	"context"
-	"github.com/cooldogedev/spectral"
+	"github.com/astraskyblock/spectral"
 	"log"
 	"sync"
 )
