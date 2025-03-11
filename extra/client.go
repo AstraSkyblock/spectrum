@@ -38,34 +38,16 @@ func NewClient(address string) (*Client, error) {
 		stream: stream,
 	}
 
-	// Start automatic flushing in a goroutine
-	go client.autoFlush()
-
 	return client, nil
 }
 
-// Send pushes data to the server.
-func (c *Client) Send(data string) error {
+// Send pushes byte data to the server.
+func (c *Client) Send(data []byte) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	_, err := c.stream.Write([]byte(data))
+	_, err := c.stream.Write(data)
 	return err
-}
-
-// autoFlush continuously reads responses from the server.
-func (c *Client) autoFlush() {
-	buf := make([]byte, 1024)
-
-	for {
-		n, err := c.stream.Read(buf)
-		if err != nil {
-			log.Println("Error reading from stream (server likely closed):", err)
-			return
-		}
-
-		log.Printf("Received echo: %s", string(buf[:n]))
-	}
 }
 
 // Close gracefully closes the connection.

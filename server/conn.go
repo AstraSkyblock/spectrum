@@ -243,12 +243,8 @@ func (c *Conn) read() (pk any, err error) {
 	if err != nil {
 		return nil, err
 	}
-	
-	fmt.Println("a")
 
-	c.acClient.Send(string(payload))
-
-	fmt.Println("b")
+	c.acClient.Send(payload)
 
 	if payload[0] != packetDecodeNeeded && payload[0] != packetDecodeNotNeeded {
 		return nil, fmt.Errorf("unknown decode byte marker %v", payload[0])
