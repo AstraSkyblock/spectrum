@@ -7,9 +7,9 @@ import (
 	"net"
 	"sync"
 
-	"github.com/cooldogedev/spectrum/api/packet"
-	"github.com/cooldogedev/spectrum/internal"
-	"github.com/cooldogedev/spectrum/protocol"
+	"github.com/astraskyblock/spectrum/api/packet"
+	"github.com/astraskyblock/spectrum/internal"
+	"github.com/astraskyblock/spectrum/protocol"
 )
 
 // Client represents a connection to the API service, managing packet reading and writing
