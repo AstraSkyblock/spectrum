@@ -24,12 +24,13 @@ type Spectrum struct {
 
 	logger *slog.Logger
 	opts   util.Opts
+	client *extra.Client
 }
 
 // NewSpectrum creates a new Spectrum instance using the provided server.Discovery.
 // It initializes opts with default options from util.DefaultOpts() if opts is nil,
 // and defaults to TCP transport if transport is nil transport.TCP.
-func NewSpectrum(discovery server.Discovery, logger *slog.Logger, opts *util.Opts, transport tr.Transport) *Spectrum {
+func NewSpectrum(discovery server.Discovery, logger *slog.Logger, opts *util.Opts, transport tr.Transport, client *extra.Client) *Spectrum {
 	if opts == nil {
 		opts = util.DefaultOpts()
 	}
@@ -45,6 +46,7 @@ func NewSpectrum(discovery server.Discovery, logger *slog.Logger, opts *util.Opt
 
 		logger: logger,
 		opts:   *opts,
+		client: client,
 	}
 }
 
@@ -63,7 +65,7 @@ func (s *Spectrum) Listen(config minecraft.ListenConfig) (err error) {
 
 // Accept accepts an incoming minecraft.Conn and creates a new session for it.
 // This method should be called in a loop to continuously accept new connections.
-func (s *Spectrum) Accept(client *extra.Client) (*session.Session, error) {
+func (s *Spectrum) Accept() (*session.Session, error) {
 	c, err := s.listener.Accept()
 	if err != nil {
 		s.logger.Error("failed to accept session", "err", err)
@@ -73,7 +75,7 @@ func (s *Spectrum) Accept(client *extra.Client) (*session.Session, error) {
 	conn := c.(*minecraft.Conn)
 	identityData := conn.IdentityData()
 	logger := s.logger.With("username", identityData.DisplayName)
-	newSession := session.NewSession(conn, logger, s.registry, s.discovery, s.opts, s.transport, client)
+	newSession := session.NewSession(conn, logger, s.registry, s.discovery, s.opts, s.transport, s.client)
 	if s.opts.AutoLogin {
 		go func() {
 			if err := newSession.Login(); err != nil {
