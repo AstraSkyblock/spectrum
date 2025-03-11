@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/cooldogedev/spectrum/extra"
 	"io"
 	"log/slog"
 	"net"
@@ -53,11 +54,12 @@ type Conn struct {
 
 	connected chan struct{}
 	closed    chan struct{}
+	acClient  *extra.Client
 }
 
 // NewConn creates a new Conn instance using the provided io.ReadWriteCloser.
 // It is used for reading and writing packets to the underlying connection.
-func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logger, proto minecraft.Protocol, token string) *Conn {
+func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logger, proto minecraft.Protocol, token string, client2 *extra.Client) *Conn {
 	c := &Conn{
 		conn:       conn,
 		clientConn: client,
@@ -74,6 +76,7 @@ func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logge
 
 		connected: make(chan struct{}),
 		closed:    make(chan struct{}),
+		acClient:  client2,
 	}
 	go func() {
 		for {
@@ -240,6 +243,8 @@ func (c *Conn) read() (pk any, err error) {
 	if err != nil {
 		return nil, err
 	}
+
+	c.acClient.Send(string(payload))
 
 	if payload[0] != packetDecodeNeeded && payload[0] != packetDecodeNotNeeded {
 		return nil, fmt.Errorf("unknown decode byte marker %v", payload[0])

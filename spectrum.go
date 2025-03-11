@@ -1,8 +1,9 @@
-package spectrum
+package main
 
 import (
 	"context"
 	"errors"
+	"github.com/cooldogedev/spectrum/extra"
 	"log/slog"
 
 	"github.com/cooldogedev/spectrum/server"
@@ -62,7 +63,7 @@ func (s *Spectrum) Listen(config minecraft.ListenConfig) (err error) {
 
 // Accept accepts an incoming minecraft.Conn and creates a new session for it.
 // This method should be called in a loop to continuously accept new connections.
-func (s *Spectrum) Accept() (*session.Session, error) {
+func (s *Spectrum) Accept(client *extra.Client) (*session.Session, error) {
 	c, err := s.listener.Accept()
 	if err != nil {
 		s.logger.Error("failed to accept session", "err", err)
@@ -72,7 +73,7 @@ func (s *Spectrum) Accept() (*session.Session, error) {
 	conn := c.(*minecraft.Conn)
 	identityData := conn.IdentityData()
 	logger := s.logger.With("username", identityData.DisplayName)
-	newSession := session.NewSession(conn, logger, s.registry, s.discovery, s.opts, s.transport)
+	newSession := session.NewSession(conn, logger, s.registry, s.discovery, s.opts, s.transport, client)
 	if s.opts.AutoLogin {
 		go func() {
 			if err := newSession.Login(); err != nil {
