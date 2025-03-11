@@ -5,9 +5,9 @@ import (
 	"os"
 	"path"
 
-	"github.com/astraskyblock/spectrum"
-	"github.com/astraskyblock/spectrum/server"
-	"github.com/astraskyblock/spectrum/util"
+	"github.com/cooldogedev/spectrum"
+	"github.com/cooldogedev/spectrum/server"
+	"github.com/cooldogedev/spectrum/util"
 	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/resource"
 )

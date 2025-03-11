@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	packet2 "github.com/astraskyblock/spectrum/server/packet"
+	packet2 "github.com/cooldogedev/spectrum/server/packet"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
