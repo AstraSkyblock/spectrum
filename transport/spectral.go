@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/AstraSkyblock/spectral"
+	"github.com/cooldogedev/spectral"
 )
 
 // Spectral implements the Transport interface to establish connections to servers using Spectral.
