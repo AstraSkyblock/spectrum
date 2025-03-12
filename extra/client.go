@@ -1,7 +1,9 @@
 package extra
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
 	"log"
 	"sync"
 
@@ -43,25 +45,31 @@ func NewClient(address string) (*Client, error) {
 	return client, nil
 }
 
-// Send pushes byte data to the server.
-func (c *Client) send(data []byte) error {
+// send pushes byte data to the server with length prefix.
+func (c *Client) send(packetType byte, data []byte) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	_, err := c.stream.Write(data)
+	// Packet format: [Size (2 bytes)] [Type (1 byte)] [Data (N bytes)]
+	size := uint16(len(data) + 1) // Include type byte in size
+	buf := new(bytes.Buffer)
+
+	_ = binary.Write(buf, binary.BigEndian, size) // Write 2-byte length
+	buf.WriteByte(packetType)                     // Write packet type
+	buf.Write(data)                               // Write actual data
+
+	_, err := c.stream.Write(buf.Bytes())
 	return err
 }
 
-// sendClient sends data to the server, marking it as a client packet.
+// SendClient sends data to the server, marking it as a client packet.
 func (c *Client) SendClient(data []byte) error {
-	packet := append([]byte{ClientPacket}, data...) // Prepend the identifier
-	return c.send(packet)
+	return c.send(ClientPacket, data)
 }
 
-// sendServer sends data to the server, marking it as a server packet.
+// SendServer sends data to the server, marking it as a server packet.
 func (c *Client) SendServer(data []byte) error {
-	packet := append([]byte{ServerPacket}, data...) // Prepend the identifier
-	return c.send(packet)
+	return c.send(ServerPacket, data)
 }
 
 // Close gracefully closes the connection.
