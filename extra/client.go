@@ -50,24 +50,30 @@ func (c *Client) send(packetType byte, data []byte, id *string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// Packet format: [Size (2 bytes)] [Type (1 byte)] [Data (N bytes)]
-	size := uint16(len(data) + 1) // Include type byte in size
-	buf := new(bytes.Buffer)
-
-	_ = binary.Write(buf, binary.BigEndian, size) // Write 2-byte length
-	buf.WriteByte(packetType)                     // Write packet type
-
+	// Ensure the identity has a null-terminator
 	var identity []byte
 	if id != nil {
-    		identity = []byte(*id + "\x00") // Add a null-terminator here
+		identity = []byte(*id + "\x00") // Add null terminator to the identity string
 	} else {
-    		identity = []byte("\x00") // Ensure even an empty identity has a null terminator
+		identity = []byte("\x00") // If no identity, just use the null terminator
 	}
 
-	data = append(identity, data...)
-	buf.Write(data) // Write actual data
+	// Calculate packet size: size of identity + size of data
+	packetSize := uint16(len(identity) + len(data))
 
-	_, err := c.stream.Write(buf.Bytes())
+	buf := new(bytes.Buffer)
+
+	// Write size (2 bytes)
+	_ = binary.Write(buf, binary.BigEndian, packetSize)
+
+	// Write packet type (1 byte)
+	buf.WriteByte(packetType)
+
+	// Write identity and data (identity is already null-terminated)
+	buf.Write(identity) // Write identity
+	buf.Write(data)     // Write actual data
+
+	_, err := c.stream.Write(buf.Bytes()) // Write to the stream
 	return err
 }
 
