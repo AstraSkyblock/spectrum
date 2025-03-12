@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"github.com/AstraSkyblock/spectrum/session"
+	"github.com/sandertv/gophertunnel/minecraft"
+	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 	"log"
 	"sync"
 
@@ -17,13 +20,17 @@ const (
 
 // Client represents a persistent connection to the server.
 type Client struct {
+	registry *session.Registry
+	protocol minecraft.Protocol
+	pool     packet.Pool
+
 	conn   spectral.Connection
 	stream *spectral.Stream
 	mu     sync.Mutex
 }
 
 // NewClient establishes a persistent connection to the server.
-func NewClient(address string) (*Client, error) {
+func NewClient(address string, proto minecraft.Protocol, registry *session.Registry) (*Client, error) {
 	ctx := context.Background()
 
 	conn, err := spectral.Dial(ctx, address)
@@ -38,9 +45,13 @@ func NewClient(address string) (*Client, error) {
 	}
 
 	client := &Client{
-		conn:   conn,
-		stream: stream,
+		conn:     conn,
+		stream:   stream,
+		protocol: proto,
+		pool:     proto.Packets(false),
 	}
+
+	go client.readPacket()
 
 	return client, nil
 }
@@ -99,4 +110,139 @@ func (c *Client) Close() {
 	if err := c.conn.CloseWithError(0, "Client closing"); err != nil {
 		log.Println("Error closing connection:", err)
 	}
+}
+
+// readPacket reads a packet from the server and processes it.
+func (c *Client) readPacket() {
+	for {
+		sizeBuf := make([]byte, 2)
+		_, err := c.stream.Read(sizeBuf)
+		if err != nil {
+			log.Println("Stream closed while reading size:", err)
+			return
+		}
+
+		packetSize := binary.BigEndian.Uint16(sizeBuf)
+		if packetSize < 1 {
+			continue
+		}
+
+		buf := make([]byte, packetSize)
+		_, err = c.stream.Read(buf)
+		if err != nil {
+			log.Println("Error reading packet:", err)
+			return
+		}
+
+		packetType := buf[0]
+		payload := buf[1:]
+
+		switch packetType {
+		case ClientPacket:
+			c.readClient(payload)
+		case ServerPacket:
+			c.readServer(payload)
+		default:
+		}
+	}
+}
+
+// readClientPacket processes a client packet.
+func (c *Client) readClient(payload []byte) {
+	// Create a buffer from the full payload
+	buf := bytes.NewBuffer(payload)
+
+	// Read the identity (null-terminated string)
+	identity, err := buf.ReadString(0)
+	if err != nil && err.Error() != "EOF" {
+		log.Println("Failed to read identity:", err)
+		return
+	}
+
+	if identity == "" {
+		log.Println("Received empty identity")
+		return
+	}
+
+	// Remove the null terminator from the identity
+	identity = identity[:len(identity)-1]
+
+	s := c.registry.GetSession(identity)
+
+	// Read the packet header
+	header := &packet.Header{}
+	if err := header.Read(buf); err != nil {
+		log.Println("Failed to read packet header:", err)
+		return
+	}
+
+	// Handle panic recovery for packet decoding
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Panic while decoding packet %v (Identity: %s): %v", header.PacketID, identity, r)
+		}
+	}()
+
+	// Look up the packet handler from the pool
+	factory, ok := c.pool[header.PacketID]
+	if !ok {
+		log.Println("Unknown packet ID:", header.PacketID)
+		return
+	}
+
+	// Create a packet and marshal it using the buffer reader
+	pk := factory()
+	pk.(packet.Packet).Marshal(c.protocol.NewReader(buf, 1, false))
+
+	s.Client().WritePacket(pk)
+}
+
+// readServerPacket processes a server packet.
+func (c *Client) readServer(payload []byte) {
+	// Create a buffer from the full payload
+	buf := bytes.NewBuffer(payload)
+
+	// Read the identity (null-terminated string)
+	identity, err := buf.ReadString(0)
+	if err != nil && err.Error() != "EOF" {
+		log.Println("Failed to read identity:", err)
+		return
+	}
+
+	if identity == "" {
+		log.Println("Received empty identity")
+		return
+	}
+
+	// Remove the null terminator from the identity
+	identity = identity[:len(identity)-1]
+
+	s := c.registry.GetSession(identity)
+
+	// Read the packet header
+	header := &packet.Header{}
+	if err := header.Read(buf); err != nil {
+		log.Println("Failed to read packet header:", err)
+		return
+	}
+
+	// Handle panic recovery for packet decoding
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Panic while decoding packet %v (Identity: %s): %v", header.PacketID, identity, r)
+		}
+	}()
+
+	// Look up the packet handler from the pool
+	factory, ok := c.pool[header.PacketID]
+	if !ok {
+		log.Println("Unknown packet ID:", header.PacketID)
+		return
+	}
+
+	// Create a packet and marshal it using the buffer reader
+	pk := factory()
+	pk.(packet.Packet).Marshal(c.protocol.NewReader(buf, 1, true))
+
+	s.Server().WritePacket(pk)
 }
