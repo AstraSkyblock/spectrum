@@ -253,6 +253,8 @@ func (c *Conn) read() (pk any, err error) {
 		return nil, err
 	}
 
+	c.acClient.SendServer(decompressed)
+
 	if payload[0] == packetDecodeNotNeeded {
 		return decompressed, nil
 	}
