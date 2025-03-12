@@ -20,7 +20,7 @@ const (
 
 // Client represents a persistent connection to the server.
 type Client struct {
-	registry *session.Registry
+	registry RegistryInterface
 	protocol minecraft.Protocol
 	pool     packet.Pool
 
