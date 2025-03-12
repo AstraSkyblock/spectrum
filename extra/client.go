@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"github.com/AstraSkyblock/spectrum/session"
 	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 	"log"
@@ -30,7 +29,7 @@ type Client struct {
 }
 
 // NewClient establishes a persistent connection to the server.
-func NewClient(address string, proto minecraft.Protocol, registry *session.Registry) (*Client, error) {
+func NewClient(address string, proto minecraft.Protocol, registry RegistryInterface) (*Client, error) {
 	ctx := context.Background()
 
 	conn, err := spectral.Dial(ctx, address)
