@@ -3,7 +3,6 @@ package spectrum
 import (
 	"context"
 	"errors"
-	"github.com/AstraSkyblock/spectrum/extra"
 	"log/slog"
 
 	"github.com/AstraSkyblock/spectrum/server"
@@ -24,7 +23,7 @@ type Spectrum struct {
 
 	logger *slog.Logger
 	opts   util.Opts
-	client *extra.Client
+	client *session.Client
 }
 
 // NewSpectrum creates a new Spectrum instance using the provided server.Discovery.
@@ -49,7 +48,7 @@ func NewSpectrum(discovery server.Discovery, logger *slog.Logger, opts *util.Opt
 	}
 }
 
-func (s *Spectrum) SetClient(client *extra.Client) {
+func (s *Spectrum) SetClient(client *session.Client) {
 	s.client = client
 }
 

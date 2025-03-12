@@ -3,7 +3,6 @@ package session
 import (
 	"context"
 	"errors"
-	"github.com/AstraSkyblock/spectrum/extra"
 	"log/slog"
 	"sync"
 	"sync/atomic"
@@ -43,11 +42,11 @@ type Session struct {
 
 	latency      atomic.Int64
 	transferring atomic.Bool
-	acClient     *extra.Client
+	acClient     *Client
 }
 
 // NewSession creates a new Session instance using the provided minecraft.Conn.
-func NewSession(clientConn *minecraft.Conn, logger *slog.Logger, registry *Registry, discovery server.Discovery, opts util.Opts, transport transport.Transport, client *extra.Client) *Session {
+func NewSession(clientConn *minecraft.Conn, logger *slog.Logger, registry *Registry, discovery server.Discovery, opts util.Opts, transport transport.Transport, client *Client) *Session {
 	s := &Session{
 		clientConn: clientConn,
 

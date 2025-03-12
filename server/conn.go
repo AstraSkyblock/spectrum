@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/AstraSkyblock/spectrum/extra"
+	"github.com/AstraSkyblock/spectrum/session"
 	"io"
 	"log/slog"
 	"net"
@@ -54,12 +54,12 @@ type Conn struct {
 
 	connected chan struct{}
 	closed    chan struct{}
-	acClient  *extra.Client
+	acClient  *session.Client
 }
 
 // NewConn creates a new Conn instance using the provided io.ReadWriteCloser.
 // It is used for reading and writing packets to the underlying connection.
-func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logger, proto minecraft.Protocol, token string, client2 *extra.Client) *Conn {
+func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logger, proto minecraft.Protocol, token string, client2 *session.Client) *Conn {
 	c := &Conn{
 		conn:       conn,
 		clientConn: client,

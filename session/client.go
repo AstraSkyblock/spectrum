@@ -1,4 +1,4 @@
-package extra
+package session
 
 import (
 	"bytes"
@@ -19,7 +19,7 @@ const (
 
 // Client represents a persistent connection to the server.
 type Client struct {
-	registry RegistryInterface
+	registry *Registry
 	protocol minecraft.Protocol
 	pool     packet.Pool
 
@@ -29,7 +29,7 @@ type Client struct {
 }
 
 // NewClient establishes a persistent connection to the server.
-func NewClient(address string, proto minecraft.Protocol, registry RegistryInterface) (*Client, error) {
+func NewClient(address string, proto minecraft.Protocol, registry *Registry) (*Client, error) {
 	ctx := context.Background()
 
 	conn, err := spectral.Dial(ctx, address)
