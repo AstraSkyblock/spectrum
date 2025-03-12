@@ -59,7 +59,7 @@ func (c *Client) send(packetType byte, data []byte, id *string) error {
 	}
 
 	// Calculate packet size: size of identity + size of data
-	packetSize := uint16(len(identity) + len(data))
+	packetSize := uint16(len(identity) + len(data) + 1)
 
 	buf := new(bytes.Buffer)
 
