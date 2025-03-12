@@ -104,6 +104,8 @@ loop:
 			break loop
 		}
 
+		s.acClient.Send(payload)
+
 		if err := handleClientPacket(s, header, pool, shieldID, payload); err != nil {
 			logError(s, "failed to write packet to server", err)
 			if err := s.fallback(); err != nil {
