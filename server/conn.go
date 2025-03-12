@@ -83,7 +83,7 @@ func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logge
 			case <-c.connected:
 				return
 			default:
-				payload, err := c.read()
+				payload, _, err := c.read()
 				if err != nil {
 					_ = c.Close()
 					c.logger.Error("failed to read connection sequence packet", "err", err)
@@ -128,12 +128,12 @@ func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logge
 
 // ReadPacket reads the next available packet from the connection. If there are deferred packets, it will return
 // one of those first. This method should not be called concurrently from multiple goroutines.
-func (c *Conn) ReadPacket() (any, error) {
+func (c *Conn) ReadPacket() (any, any, error) {
 	if len(c.deferredPackets) > 0 {
 		pk := c.deferredPackets[0]
 		c.deferredPackets[0] = nil
 		c.deferredPackets = c.deferredPackets[1:]
-		return pk, nil
+		return pk, nil, nil
 	}
 	return c.read()
 }
@@ -229,35 +229,35 @@ func (c *Conn) Close() (err error) {
 // Packets are prefixed with a special byte (packetDecodeNeeded or packetDecodeNotNeeded) indicating
 // the decoding necessity. If decode is false and the packet does not require decoding,
 // it returns the raw decompressed payload.
-func (c *Conn) read() (pk any, err error) {
+func (c *Conn) read() (pk any, raw any, err error) {
 	select {
 	case <-c.closed:
-		return nil, net.ErrClosed
+		return nil, nil, net.ErrClosed
 	default:
 	}
 
 	payload, err := c.reader.ReadPacket()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if payload[0] != packetDecodeNeeded && payload[0] != packetDecodeNotNeeded {
-		return nil, fmt.Errorf("unknown decode byte marker %v", payload[0])
+		return nil, nil, fmt.Errorf("unknown decode byte marker %v", payload[0])
 	}
 
 	decompressed, err := snappy.Decode(nil, payload[1:])
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if payload[0] == packetDecodeNotNeeded {
-		return decompressed, nil
+		return decompressed, decompressed, nil
 	}
 
 	buf := bytes.NewBuffer(decompressed)
 	header := &packet.Header{}
 	if err := header.Read(buf); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	defer func() {
@@ -267,11 +267,11 @@ func (c *Conn) read() (pk any, err error) {
 	}()
 	factory, ok := c.pool[header.PacketID]
 	if !ok {
-		return nil, fmt.Errorf("unknown packet ID %v", header.PacketID)
+		return nil, nil, fmt.Errorf("unknown packet ID %v", header.PacketID)
 	}
 	pk = factory()
 	pk.(packet.Packet).Marshal(c.protocol.NewReader(buf, c.shieldID, false))
-	return pk, nil
+	return pk, decompressed, nil
 }
 
 // deferPacket defers a packet to be returned later in ReadPacket().
