@@ -46,7 +46,7 @@ func NewClient(address string) (*Client, error) {
 }
 
 // send pushes byte data to the server with length prefix.
-func (c *Client) send(packetType byte, data []byte) error {
+func (c *Client) send(packetType byte, data []byte, id *string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -56,7 +56,16 @@ func (c *Client) send(packetType byte, data []byte) error {
 
 	_ = binary.Write(buf, binary.BigEndian, size) // Write 2-byte length
 	buf.WriteByte(packetType)                     // Write packet type
-	buf.Write(data)                               // Write actual data
+
+	var identity []byte
+	if id != nil {
+		identity = []byte(*id)
+	} else {
+		identity = []byte("")
+	}
+
+	data = append(identity, data...)
+	buf.Write(data) // Write actual data
 
 	_, err := c.stream.Write(buf.Bytes())
 	return err
@@ -64,28 +73,12 @@ func (c *Client) send(packetType byte, data []byte) error {
 
 // SendClient sends data to the server, marking it as a client packet.
 func (c *Client) SendClient(data []byte, id *string) error {
-	var identity []byte
-	if id != nil {
-		identity = []byte(*id)
-	} else {
-		identity = []byte("")
-	}
-
-	prefixedData := append(identity, data...)
-	return c.send(ClientPacket, prefixedData)
+	return c.send(ClientPacket, data, id)
 }
 
 // SendServer sends data to the server, marking it as a server packet.
 func (c *Client) SendServer(data []byte, id *string) error {
-	var identity []byte
-	if id != nil {
-		identity = []byte(*id)
-	} else {
-		identity = []byte("")
-	}
-	
-	prefixedData := append(identity, data...)
-	return c.send(ServerPacket, prefixedData)
+	return c.send(ServerPacket, data, id)
 }
 
 // Close gracefully closes the connection.
