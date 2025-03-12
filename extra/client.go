@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"github.com/AstraSkyblock/spectrum/session"
 	"log"
 	"sync"
 
@@ -64,15 +63,27 @@ func (c *Client) send(packetType byte, data []byte) error {
 }
 
 // SendClient sends data to the server, marking it as a client packet.
-func (c *Client) SendClient(data []byte, s *session.Session) error {
-	identity := []byte(s.Client().IdentityData().Identity)
+func (c *Client) SendClient(data []byte, id *string) error {
+	var identity []byte
+	if id != nil {
+		identity = []byte(*id)
+	} else {
+		identity = []byte("")
+	}
+
 	prefixedData := append(identity, data...)
 	return c.send(ClientPacket, prefixedData)
 }
 
 // SendServer sends data to the server, marking it as a server packet.
-func (c *Client) SendServer(data []byte, s *session.Session) error {
-	identity := []byte(s.Client().IdentityData().Identity)
+func (c *Client) SendServer(data []byte, id *string) error {
+	var identity []byte
+	if id != nil {
+		identity = []byte(*id)
+	} else {
+		identity = []byte("")
+	}
+	
 	prefixedData := append(identity, data...)
 	return c.send(ServerPacket, prefixedData)
 }

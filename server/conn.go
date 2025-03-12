@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AstraSkyblock/spectrum/extra"
-	"github.com/AstraSkyblock/spectrum/session"
 	"io"
 	"log/slog"
 	"net"
@@ -132,14 +131,14 @@ func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logge
 
 // ReadPacket reads the next available packet from the connection. If there are deferred packets, it will return
 // one of those first. This method should not be called concurrently from multiple goroutines.
-func (c *Conn) ReadPacket(s *session.Session) (any, error) {
+func (c *Conn) ReadPacket(id *string) (any, error) {
 	if len(c.deferredPackets) > 0 {
 		pk := c.deferredPackets[0]
 		c.deferredPackets[0] = nil
 		c.deferredPackets = c.deferredPackets[1:]
 		return pk, nil
 	}
-	return c.read(s)
+	return c.read(id)
 }
 
 // WritePacket encodes and writes the provided packet to the underlying connection.
@@ -233,7 +232,7 @@ func (c *Conn) Close() (err error) {
 // Packets are prefixed with a special byte (packetDecodeNeeded or packetDecodeNotNeeded) indicating
 // the decoding necessity. If decode is false and the packet does not require decoding,
 // it returns the raw decompressed payload.
-func (c *Conn) read(s *session.Session) (pk any, err error) {
+func (c *Conn) read(id *string) (pk any, err error) {
 	select {
 	case <-c.closed:
 		return nil, net.ErrClosed
@@ -254,8 +253,8 @@ func (c *Conn) read(s *session.Session) (pk any, err error) {
 		return nil, err
 	}
 
-	if s != nil {
-		c.acClient.SendServer(decompressed, s)
+	if id != nil {
+		c.acClient.SendServer(decompressed, id)
 	}
 
 	if payload[0] == packetDecodeNotNeeded {
