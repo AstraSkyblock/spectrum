@@ -30,7 +30,7 @@ type Spectrum struct {
 // NewSpectrum creates a new Spectrum instance using the provided server.Discovery.
 // It initializes opts with default options from util.DefaultOpts() if opts is nil,
 // and defaults to TCP transport if transport is nil transport.TCP.
-func NewSpectrum(discovery server.Discovery, logger *slog.Logger, opts *util.Opts, transport tr.Transport, client *extra.Client) *Spectrum {
+func NewSpectrum(discovery server.Discovery, logger *slog.Logger, opts *util.Opts, transport tr.Transport) *Spectrum {
 	if opts == nil {
 		opts = util.DefaultOpts()
 	}
@@ -46,8 +46,11 @@ func NewSpectrum(discovery server.Discovery, logger *slog.Logger, opts *util.Opt
 
 		logger: logger,
 		opts:   *opts,
-		client: client,
 	}
+}
+
+func (s *Spectrum) SetClient(client *extra.Client) {
+	s.client = client
 }
 
 // Listen sets up a minecraft.Listener for incoming connections based on the provided minecraft.ListenConfig.
