@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/AstraSkyblock/spectrum/session"
 	"io"
 	"log/slog"
 	"net"
@@ -54,12 +53,11 @@ type Conn struct {
 
 	connected chan struct{}
 	closed    chan struct{}
-	acClient  *session.Client
 }
 
 // NewConn creates a new Conn instance using the provided io.ReadWriteCloser.
 // It is used for reading and writing packets to the underlying connection.
-func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logger, proto minecraft.Protocol, token string, client2 *session.Client) *Conn {
+func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logger, proto minecraft.Protocol, token string) *Conn {
 	c := &Conn{
 		conn:       conn,
 		clientConn: client,
@@ -76,7 +74,6 @@ func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logge
 
 		connected: make(chan struct{}),
 		closed:    make(chan struct{}),
-		acClient:  client2,
 	}
 	go func() {
 		for {
@@ -86,7 +83,7 @@ func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logge
 			case <-c.connected:
 				return
 			default:
-				payload, err := c.read(nil)
+				payload, err := c.read()
 				if err != nil {
 					_ = c.Close()
 					c.logger.Error("failed to read connection sequence packet", "err", err)
@@ -131,14 +128,14 @@ func NewConn(conn io.ReadWriteCloser, client *minecraft.Conn, logger *slog.Logge
 
 // ReadPacket reads the next available packet from the connection. If there are deferred packets, it will return
 // one of those first. This method should not be called concurrently from multiple goroutines.
-func (c *Conn) ReadPacket(id *string) (any, error) {
+func (c *Conn) ReadPacket() (any, error) {
 	if len(c.deferredPackets) > 0 {
 		pk := c.deferredPackets[0]
 		c.deferredPackets[0] = nil
 		c.deferredPackets = c.deferredPackets[1:]
 		return pk, nil
 	}
-	return c.read(id)
+	return c.read()
 }
 
 // WritePacket encodes and writes the provided packet to the underlying connection.
@@ -232,7 +229,7 @@ func (c *Conn) Close() (err error) {
 // Packets are prefixed with a special byte (packetDecodeNeeded or packetDecodeNotNeeded) indicating
 // the decoding necessity. If decode is false and the packet does not require decoding,
 // it returns the raw decompressed payload.
-func (c *Conn) read(id *string) (pk any, err error) {
+func (c *Conn) read() (pk any, err error) {
 	select {
 	case <-c.closed:
 		return nil, net.ErrClosed
@@ -251,10 +248,6 @@ func (c *Conn) read(id *string) (pk any, err error) {
 	decompressed, err := snappy.Decode(nil, payload[1:])
 	if err != nil {
 		return nil, err
-	}
-
-	if id != nil {
-		c.acClient.SendServer(decompressed, id)
 	}
 
 	if payload[0] == packetDecodeNotNeeded {

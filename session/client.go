@@ -56,17 +56,11 @@ func NewClient(address string, proto minecraft.Protocol, registry *Registry) (*C
 }
 
 // send pushes byte data to the server with length prefix.
-func (c *Client) send(packetType byte, data []byte, id *string) error {
+func (c *Client) send(packetType byte, data []byte, id string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-
-	// Ensure the identity has a null-terminator
-	var identity []byte
-	if id != nil {
-		identity = []byte(*id + "\x00") // Add null terminator to the identity string
-	} else {
-		identity = []byte("\x00") // If no identity, just use the null terminator
-	}
+	
+	identity := []byte(id + "\x00")
 
 	// Calculate packet size: size of identity + size of data
 	packetSize := uint16(len(identity) + len(data) + 1)
@@ -88,12 +82,12 @@ func (c *Client) send(packetType byte, data []byte, id *string) error {
 }
 
 // SendClient sends data to the server, marking it as a client packet.
-func (c *Client) SendClient(data []byte, id *string) error {
+func (c *Client) SendClient(data []byte, id string) error {
 	return c.send(ClientPacket, data, id)
 }
 
 // SendServer sends data to the server, marking it as a server packet.
-func (c *Client) SendServer(data []byte, id *string) error {
+func (c *Client) SendServer(data []byte, id string) error {
 	return c.send(ServerPacket, data, id)
 }
 

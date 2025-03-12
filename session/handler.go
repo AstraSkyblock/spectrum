@@ -27,7 +27,7 @@ loop:
 
 		id := s.clientConn.IdentityData().Identity
 
-		pk, err := server.ReadPacket(&id)
+		pk, err := server.ReadPacket()
 		if err != nil {
 			if s.transferring.Load() || server != s.Server() {
 				continue loop
@@ -71,6 +71,8 @@ loop:
 			if ctx.Cancelled() {
 				continue loop
 			}
+
+			s.acClient.SendServer(pk, id)
 
 			if _, err := s.clientConn.Write(pk); err != nil {
 				logError(s, "failed to write raw packet to client", err)

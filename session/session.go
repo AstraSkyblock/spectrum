@@ -322,7 +322,7 @@ func (s *Session) dial(ctx context.Context, addr string) (*server.Conn, error) {
 	} else {
 		proto = minecraft.DefaultProtocol
 	}
-	return server.NewConn(conn, s.clientConn, s.logger.With("addr", addr), proto, s.opts.Token, s.acClient), nil
+	return server.NewConn(conn, s.clientConn, s.logger.With("addr", addr), proto, s.opts.Token), nil
 }
 
 // fallback attempts to transfer the session to a fallback server provided by the discovery.
