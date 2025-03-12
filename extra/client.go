@@ -59,9 +59,9 @@ func (c *Client) send(packetType byte, data []byte, id *string) error {
 
 	var identity []byte
 	if id != nil {
-		identity = []byte(*id)
+    		identity = []byte(*id + "\x00") // Add a null-terminator here
 	} else {
-		identity = []byte("")
+    		identity = []byte("\x00") // Ensure even an empty identity has a null terminator
 	}
 
 	data = append(identity, data...)
