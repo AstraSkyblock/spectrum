@@ -24,7 +24,7 @@ loop:
 		}
 
 		server := s.Server()
-		pk, err := server.ReadPacket()
+		pk, err := server.ReadPacket(s)
 		if err != nil {
 			if s.transferring.Load() || server != s.Server() {
 				continue loop
@@ -104,7 +104,7 @@ loop:
 			break loop
 		}
 
-		s.acClient.SendClient(payload)
+		s.acClient.SendClient(payload, s)
 
 		if err := handleClientPacket(s, header, pool, shieldID, payload); err != nil {
 			logError(s, "failed to write packet to server", err)
