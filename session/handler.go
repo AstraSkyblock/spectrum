@@ -25,7 +25,7 @@ loop:
 
 		server := s.Server()
 
-		id := s.clientConn.IdentityData().Identity
+		id := s.clientConn.IdentityData().XUID
 
 		pk, raw, err := server.ReadPacket()
 		if raw != nil {
@@ -113,7 +113,7 @@ loop:
 			break loop
 		}
 
-		id := s.clientConn.IdentityData().Identity
+		id := s.clientConn.IdentityData().XUID
 
 		s.acClient.SendClient(payload, id)
 
