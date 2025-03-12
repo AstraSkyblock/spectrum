@@ -59,7 +59,7 @@ func NewClient(address string, proto minecraft.Protocol, registry *Registry) (*C
 func (c *Client) send(packetType byte, data []byte, id string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	identity := []byte(id + "\x00")
 
 	// Calculate packet size: size of identity + size of data

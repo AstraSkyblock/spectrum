@@ -111,7 +111,7 @@ loop:
 
 		id := s.clientConn.IdentityData().Identity
 
-		s.acClient.SendClient(payload, &id)
+		s.acClient.SendClient(payload, id)
 
 		if err := handleClientPacket(s, header, pool, shieldID, payload); err != nil {
 			logError(s, "failed to write packet to server", err)
