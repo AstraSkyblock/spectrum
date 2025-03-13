@@ -1,12 +1,9 @@
 package session
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/AstraSkyblock/spectrum/internal"
-	packet2 "github.com/AstraSkyblock/spectrum/server/packet"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/login"
 	"log/slog"
 	"sync"
@@ -125,6 +122,13 @@ func (s *Session) LoginContext(ctx context.Context) (err error) {
 	return
 }
 
+type AntiCheatInfo struct {
+	Identity     string `json:"identity"`
+	ClientData   []byte `json:"client_data"`
+	IdentityData []byte `json:"identity_data"`
+	GameData     []byte `json:"game_data"`
+}
+
 func (s *Session) sendACInfo(identityData login.IdentityData, clientData login.ClientData, gameData minecraft.GameData) {
 	s.logger.Info("start sending ac info")
 	clientDataE, err := json.Marshal(identityData)
@@ -145,38 +149,16 @@ func (s *Session) sendACInfo(identityData login.IdentityData, clientData login.C
 		return
 	}
 
-	pk := &packet2.AntiCheatInfo{
+	antiCheatInfo := AntiCheatInfo{
 		Identity:     identityData.XUID,
 		ClientData:   clientDataE,
 		IdentityData: identityDataE,
 		GameData:     gameDataE,
 	}
 
-	header := &packet.Header{}
+	encoded, err := json.Marshal(antiCheatInfo)
 
-	buf := internal.BufferPool.Get().(*bytes.Buffer)
-	defer func() {
-		buf.Reset()
-		internal.BufferPool.Put(buf)
-	}()
-
-	header.PacketID = 504
-	if err := header.Write(buf); err != nil {
-		s.logger.Error("header cant write")
-		return
-	}
-
-	writer := s.acClient.protocol.NewWriter(buf, 1)
-	if writer == nil {
-		s.logger.Error("no writer")
-		return
-	}
-
-	s.logger.Info("bytes", buf.Bytes())
-
-	pk.Marshal(writer)
-
-	err = s.acClient.SendAC(buf.Bytes())
+	err = s.acClient.SendAC(encoded)
 	if err != nil {
 		s.logger.Error("got error: ", err)
 	}

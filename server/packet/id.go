@@ -5,5 +5,4 @@ const (
 	IDConnectionResponse
 	IDLatency
 	IDTransfer
-	IDAntiCheatInfo
 )
