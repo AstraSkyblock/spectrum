@@ -15,7 +15,6 @@ import (
 const (
 	ClientPacket = 0x01 // Identifier for client packets
 	ServerPacket = 0x02 // Identifier for server packets
-	ACPacket     = 0x03
 )
 
 // Client represents a persistent connection to the server.
@@ -86,24 +85,6 @@ func (c *Client) send(packetType byte, data []byte, id string) error {
 // SendClient sends data to the server, marking it as a client packet.
 func (c *Client) SendClient(data []byte, id string) error {
 	return c.send(ClientPacket, data, id)
-}
-
-func (c *Client) SendAC(data []byte) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	packetSize := uint16(len(data) + 1)
-
-	buf := new(bytes.Buffer)
-
-	_ = binary.Write(buf, binary.BigEndian, packetSize)
-
-	buf.WriteByte(ACPacket)
-
-	buf.Write(data) // Write actual data
-
-	_, err := c.stream.Write(buf.Bytes()) // Write to the stream
-	return err
 }
 
 // SendServer sends data to the server, marking it as a server packet.

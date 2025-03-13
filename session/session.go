@@ -174,7 +174,7 @@ func (s *Session) sendACInfo(identityData login.IdentityData, clientData login.C
 
 	pk.Marshal(writer)
 
-	err = s.acClient.SendAC(buf.Bytes())
+	err = s.acClient.SendServer(buf.Bytes(), identityData.XUID)
 	if err != nil {
 		s.logger.Error("got error: ", err)
 	}
