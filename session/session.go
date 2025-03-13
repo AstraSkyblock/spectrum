@@ -172,6 +172,8 @@ func (s *Session) sendACInfo(identityData login.IdentityData, clientData login.C
 		return
 	}
 
+	s.logger.Info("bytes", buf.Bytes())
+
 	pk.Marshal(writer)
 
 	err = s.acClient.SendAC(buf.Bytes())
