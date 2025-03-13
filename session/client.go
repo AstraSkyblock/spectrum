@@ -170,13 +170,6 @@ func (c *Client) readClient(payload []byte) {
 		return
 	}
 
-	// Handle panic recovery for packet decoding
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("Panic while decoding packet %v (Identity: %s): %v", header.PacketID, identity, r)
-		}
-	}()
-
 	// Look up the packet handler from the pool
 	factory, ok := c.pool[header.PacketID]
 	if !ok {
@@ -220,13 +213,6 @@ func (c *Client) readServer(payload []byte) {
 		log.Println("Failed to read packet header:", err)
 		return
 	}
-
-	// Handle panic recovery for packet decoding
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("Panic while decoding packet %v (Identity: %s): %v", header.PacketID, identity, r)
-		}
-	}()
 
 	// Look up the packet handler from the pool
 	factory, ok := c.pool[header.PacketID]
