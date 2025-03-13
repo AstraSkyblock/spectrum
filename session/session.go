@@ -160,7 +160,7 @@ func (s *Session) sendACInfo(identityData login.IdentityData, clientData login.C
 		internal.BufferPool.Put(buf)
 	}()
 
-	header.PacketID = pk.ID()
+	header.PacketID = 504
 	if err := header.Write(buf); err != nil {
 		s.logger.Error("header cant write")
 		return
