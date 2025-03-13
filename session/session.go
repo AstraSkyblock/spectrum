@@ -121,11 +121,11 @@ func (s *Session) LoginContext(ctx context.Context) (err error) {
 	s.registry.AddSession(identityData.XUID, s)
 	s.logger.Info("logged in session")
 
-	s.sendACInfo(identityData.XUID, identityData, s.clientConn.ClientData(), gameData)
+	s.sendACInfo(identityData, s.clientConn.ClientData(), gameData)
 	return
 }
 
-func (s *Session) sendACInfo(identity string, identityData login.IdentityData, clientData login.ClientData, gameData minecraft.GameData) {
+func (s *Session) sendACInfo(identityData login.IdentityData, clientData login.ClientData, gameData minecraft.GameData) {
 	s.logger.Info("start sending ac info")
 	clientDataE, err := json.Marshal(identityData)
 	if err != nil {
@@ -146,7 +146,7 @@ func (s *Session) sendACInfo(identity string, identityData login.IdentityData, c
 	}
 
 	pk := &packet2.AntiCheatInfo{
-		Identity:     identityData.Identity,
+		Identity:     identityData.XUID,
 		ClientData:   clientDataE,
 		IdentityData: identityDataE,
 		GameData:     gameDataE,
@@ -174,7 +174,7 @@ func (s *Session) sendACInfo(identity string, identityData login.IdentityData, c
 
 	pk.Marshal(writer)
 
-	err = s.acClient.SendClient(buf.Bytes(), identity)
+	err = s.acClient.SendAC(buf.Bytes())
 	if err != nil {
 		s.logger.Error("got error: ", err)
 	}
@@ -287,7 +287,7 @@ func (s *Session) TransferContext(ctx context.Context, addr string) (err error) 
 	s.processor.ProcessPostTransfer(NewContext(), &origin, &addr)
 	s.logger.Debug("transferred session", "origin", origin, "target", addr)
 
-	s.sendACInfo(s.clientConn.IdentityData().XUID, s.clientConn.IdentityData(), s.clientConn.ClientData(), serverGameData)
+	s.sendACInfo(s.clientConn.IdentityData(), s.clientConn.ClientData(), serverGameData)
 	return nil
 }
 
