@@ -123,10 +123,10 @@ func (s *Session) LoginContext(ctx context.Context) (err error) {
 }
 
 type AntiCheatInfo struct {
-	Identity     string `json:"identity"`
-	ClientData   []byte `json:"client_data"`
-	IdentityData []byte `json:"identity_data"`
-	GameData     []byte `json:"game_data"`
+	Identity     string          `json:"identity"`
+	ClientData   json.RawMessage `json:"client_data"`
+	IdentityData json.RawMessage `json:"identity_data"`
+	GameData     json.RawMessage `json:"game_data"`
 }
 
 func (s *Session) sendACInfo(identityData login.IdentityData, clientData login.ClientData, gameData minecraft.GameData) {
