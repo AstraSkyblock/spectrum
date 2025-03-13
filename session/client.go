@@ -188,6 +188,7 @@ func (c *Client) readClient(payload []byte) {
 	pk.(packet.Packet).Marshal(c.protocol.NewReader(buf, 1, false))
 
 	s.Client().WritePacket(pk)
+	s.clientConn.Flush()
 }
 
 // readServerPacket processes a server packet.
@@ -238,4 +239,5 @@ func (c *Client) readServer(payload []byte) {
 	pk.(packet.Packet).Marshal(c.protocol.NewReader(buf, 1, true))
 
 	s.Server().WritePacket(pk)
+	s.serverConn.Flush()
 }
