@@ -1,8 +1,13 @@
 package session
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"github.com/AstraSkyblock/spectrum/internal"
+	packet2 "github.com/AstraSkyblock/spectrum/server/packet"
+	"github.com/sandertv/gophertunnel/minecraft/protocol/login"
 	"log/slog"
 	"sync"
 	"sync/atomic"
@@ -115,7 +120,55 @@ func (s *Session) LoginContext(ctx context.Context) (err error) {
 	go handleLatency(s, s.opts.LatencyInterval)
 	s.registry.AddSession(identityData.XUID, s)
 	s.logger.Info("logged in session")
+
+	s.sendACInfo(identityData.XUID, identityData, s.clientConn.ClientData(), gameData)
 	return
+}
+
+func (s *Session) sendACInfo(identity string, identityData login.IdentityData, clientData login.ClientData, gameData minecraft.GameData) {
+	clientDataE, err := json.Marshal(identityData)
+	if err != nil {
+		return
+	}
+
+	identityDataE, err := json.Marshal(clientData)
+	if err != nil {
+		return
+	}
+
+	gameDataE, err := json.Marshal(gameData)
+	if err != nil {
+		return
+	}
+
+	pk := &packet2.AntiCheatInfo{
+		Identity:     identityData.Identity,
+		ClientData:   clientDataE,
+		IdentityData: identityDataE,
+		GameData:     gameDataE,
+	}
+
+	header := &packet.Header{}
+
+	buf := internal.BufferPool.Get().(*bytes.Buffer)
+	defer func() {
+		buf.Reset()
+		internal.BufferPool.Put(buf)
+	}()
+
+	header.PacketID = pk.ID()
+	if err := header.Write(buf); err != nil {
+		return
+	}
+
+	writer := s.acClient.protocol.NewWriter(buf, 1)
+	if writer == nil {
+		return
+	}
+
+	pk.Marshal(writer)
+
+	s.acClient.SendClient(buf.Bytes(), identity)
 }
 
 // Transfer initiates a transfer to a different server using the specified address.
@@ -222,6 +275,8 @@ func (s *Session) TransferContext(ctx context.Context, addr string) (err error) 
 	s.serverMu.Unlock()
 	s.processor.ProcessPostTransfer(NewContext(), &origin, &addr)
 	s.logger.Debug("transferred session", "origin", origin, "target", addr)
+
+	s.sendACInfo(s.clientConn.IdentityData().XUID, s.clientConn.IdentityData(), s.clientConn.ClientData(), serverGameData)
 	return nil
 }
 
