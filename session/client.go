@@ -163,26 +163,28 @@ func (c *Client) readClient(payload []byte) {
 
 	s := c.registry.GetSession(identity)
 
-	// Read the packet header
-	header := &packet.Header{}
-	if err := header.Read(buf); err != nil {
-		log.Println("Failed to read packet header:", err)
-		return
+	if s != nil {
+		// Read the packet header
+		header := &packet.Header{}
+		if err := header.Read(buf); err != nil {
+			log.Println("Failed to read packet header:", err)
+			return
+		}
+
+		// Look up the packet handler from the pool
+		factory, ok := c.pool[header.PacketID]
+		if !ok {
+			log.Println("Unknown packet ID:", header.PacketID)
+			return
+		}
+
+		// Create a packet and marshal it using the buffer reader
+		pk := factory()
+		pk.(packet.Packet).Marshal(c.protocol.NewReader(buf, 1, false))
+
+		s.clientConn.WritePacket(pk)
+		s.clientConn.Flush()
 	}
-
-	// Look up the packet handler from the pool
-	factory, ok := c.pool[header.PacketID]
-	if !ok {
-		log.Println("Unknown packet ID:", header.PacketID)
-		return
-	}
-
-	// Create a packet and marshal it using the buffer reader
-	pk := factory()
-	pk.(packet.Packet).Marshal(c.protocol.NewReader(buf, 1, false))
-
-	s.clientConn.WritePacket(pk)
-	s.clientConn.Flush()
 }
 
 // readServerPacket processes a server packet.
@@ -207,23 +209,25 @@ func (c *Client) readServer(payload []byte) {
 
 	s := c.registry.GetSession(identity)
 
-	// Read the packet header
-	header := &packet.Header{}
-	if err := header.Read(buf); err != nil {
-		log.Println("Failed to read packet header:", err)
-		return
+	if s != nil {
+		// Read the packet header
+		header := &packet.Header{}
+		if err := header.Read(buf); err != nil {
+			log.Println("Failed to read packet header:", err)
+			return
+		}
+
+		// Look up the packet handler from the pool
+		factory, ok := c.pool[header.PacketID]
+		if !ok {
+			log.Println("Unknown packet ID:", header.PacketID)
+			return
+		}
+
+		// Create a packet and marshal it using the buffer reader
+		pk := factory()
+		pk.(packet.Packet).Marshal(c.protocol.NewReader(buf, 1, true))
+
+		s.serverConn.WritePacket(pk)
 	}
-
-	// Look up the packet handler from the pool
-	factory, ok := c.pool[header.PacketID]
-	if !ok {
-		log.Println("Unknown packet ID:", header.PacketID)
-		return
-	}
-
-	// Create a packet and marshal it using the buffer reader
-	pk := factory()
-	pk.(packet.Packet).Marshal(c.protocol.NewReader(buf, 1, true))
-
-	s.serverConn.WritePacket(pk)
 }
