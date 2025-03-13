@@ -239,5 +239,4 @@ func (c *Client) readServer(payload []byte) {
 	pk.(packet.Packet).Marshal(c.protocol.NewReader(buf, 1, true))
 
 	s.Server().WritePacket(pk)
-	s.serverConn.Flush()
 }
