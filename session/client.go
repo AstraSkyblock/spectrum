@@ -181,7 +181,7 @@ func (c *Client) readClient(payload []byte) {
 	pk := factory()
 	pk.(packet.Packet).Marshal(c.protocol.NewReader(buf, 1, false))
 
-	s.Client().WritePacket(pk)
+	s.clientConn.WritePacket(pk)
 	s.clientConn.Flush()
 }
 
@@ -225,5 +225,5 @@ func (c *Client) readServer(payload []byte) {
 	pk := factory()
 	pk.(packet.Packet).Marshal(c.protocol.NewReader(buf, 1, true))
 
-	s.Server().WritePacket(pk)
+	s.serverConn.WritePacket(pk)
 }
