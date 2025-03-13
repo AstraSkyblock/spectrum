@@ -128,16 +128,19 @@ func (s *Session) LoginContext(ctx context.Context) (err error) {
 func (s *Session) sendACInfo(identity string, identityData login.IdentityData, clientData login.ClientData, gameData minecraft.GameData) {
 	clientDataE, err := json.Marshal(identityData)
 	if err != nil {
+		s.logger.Error("client data cant marshal")
 		return
 	}
 
 	identityDataE, err := json.Marshal(clientData)
 	if err != nil {
+		s.logger.Error("id data cant marshal")
 		return
 	}
 
 	gameDataE, err := json.Marshal(gameData)
 	if err != nil {
+		s.logger.Error("game data cant marshal")
 		return
 	}
 
@@ -158,11 +161,13 @@ func (s *Session) sendACInfo(identity string, identityData login.IdentityData, c
 
 	header.PacketID = pk.ID()
 	if err := header.Write(buf); err != nil {
+		s.logger.Error("header cant write")
 		return
 	}
 
 	writer := s.acClient.protocol.NewWriter(buf, 1)
 	if writer == nil {
+		s.logger.Error("no writer")
 		return
 	}
 
