@@ -126,6 +126,7 @@ func (s *Session) LoginContext(ctx context.Context) (err error) {
 }
 
 func (s *Session) sendACInfo(identity string, identityData login.IdentityData, clientData login.ClientData, gameData minecraft.GameData) {
+	s.logger.Info("start sending ac info")
 	clientDataE, err := json.Marshal(identityData)
 	if err != nil {
 		s.logger.Error("client data cant marshal")
@@ -173,7 +174,12 @@ func (s *Session) sendACInfo(identity string, identityData login.IdentityData, c
 
 	pk.Marshal(writer)
 
-	s.acClient.SendClient(buf.Bytes(), identity)
+	err = s.acClient.SendClient(buf.Bytes(), identity)
+	if err != nil {
+		s.logger.Error("got error: ", err)
+	}
+
+	s.logger.Info("sent ac info")
 }
 
 // Transfer initiates a transfer to a different server using the specified address.
