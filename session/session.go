@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/go-gl/mathgl/mgl32"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/login"
 	"log/slog"
 	"sync"
@@ -123,31 +124,31 @@ func (s *Session) LoginContext(ctx context.Context) (err error) {
 }
 
 type AntiCheatInfo struct {
-	Identity string `json:"identity"`
+	Identity        string     `json:"identity"`
+	DeviceOs        int        `json:"device_os"`
+	TitleId         string     `json:"title_id"`
+	DisplayName     string     `json:"display_name"`
+	EntityRuntimeId uint64     `json:"entity_runtime_id"`
+	EntityUniqueId  int64      `json:"entity_unique_id"`
+	PlayerPosition  mgl32.Vec3 `json:"player_position"`
+	Pitch           float32    `json:"pitch"`
+	Yaw             float32    `json:"yaw"`
+	GameMode        int32      `json:"game_mode"`
 }
 
 func (s *Session) sendACInfo(identityData login.IdentityData, clientData login.ClientData, gameData minecraft.GameData) {
 	s.logger.Info("start sending ac info")
-	/** clientDataE, err := json.Marshal(identityData)
-	if err != nil {
-		s.logger.Error("client data cant marshal")
-		return
-	}
-
-	identityDataE, err := json.Marshal(clientData)
-	if err != nil {
-		s.logger.Error("id data cant marshal")
-		return
-	}
-
-	gameDataE, err := json.Marshal(gameData)
-	if err != nil {
-		s.logger.Error("game data cant marshal")
-		return
-	} */
 
 	antiCheatInfo := AntiCheatInfo{
-		Identity: identityData.XUID,
+		Identity:        identityData.XUID,
+		DeviceOs:        int(clientData.DeviceOS),
+		TitleId:         identityData.TitleID,
+		DisplayName:     identityData.DisplayName,
+		EntityRuntimeId: gameData.EntityRuntimeID,
+		PlayerPosition:  gameData.PlayerPosition,
+		Pitch:           gameData.Pitch,
+		Yaw:             gameData.Yaw,
+		GameMode:        gameData.PlayerGameMode,
 	}
 
 	encoded, err := json.Marshal(antiCheatInfo)
