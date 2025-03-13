@@ -123,15 +123,12 @@ func (s *Session) LoginContext(ctx context.Context) (err error) {
 }
 
 type AntiCheatInfo struct {
-	Identity     string          `json:"identity"`
-	ClientData   json.RawMessage `json:"client_data"`
-	IdentityData json.RawMessage `json:"identity_data"`
-	GameData     json.RawMessage `json:"game_data"`
+	Identity string `json:"identity"`
 }
 
 func (s *Session) sendACInfo(identityData login.IdentityData, clientData login.ClientData, gameData minecraft.GameData) {
 	s.logger.Info("start sending ac info")
-	clientDataE, err := json.Marshal(identityData)
+	/** clientDataE, err := json.Marshal(identityData)
 	if err != nil {
 		s.logger.Error("client data cant marshal")
 		return
@@ -147,13 +144,10 @@ func (s *Session) sendACInfo(identityData login.IdentityData, clientData login.C
 	if err != nil {
 		s.logger.Error("game data cant marshal")
 		return
-	}
+	} */
 
 	antiCheatInfo := AntiCheatInfo{
-		Identity:     identityData.XUID,
-		ClientData:   clientDataE,
-		IdentityData: identityDataE,
-		GameData:     gameDataE,
+		Identity: identityData.XUID,
 	}
 
 	encoded, err := json.Marshal(antiCheatInfo)
