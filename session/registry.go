@@ -23,8 +23,6 @@ func (r *Registry) AddSession(xuid string, session *Session) {
 }
 
 func (r *Registry) GetSession(xuid string) *Session {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
 	return r.sessions[xuid]
 }
 
