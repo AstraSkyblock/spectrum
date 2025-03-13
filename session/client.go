@@ -44,6 +44,7 @@ func NewClient(address string, proto minecraft.Protocol, registry *Registry) (*C
 	}
 
 	client := &Client{
+		registry: registry,
 		conn:     conn,
 		stream:   stream,
 		protocol: proto,
